@@ -114,7 +114,7 @@ def get_stress_espresso(filename):
 
 	line_count = 0
 
-	for line in structure:
+	for line in espresso:
 		line_count += 1
 
 	espresso.close()
@@ -128,18 +128,9 @@ def get_stress_espresso(filename):
 
 		if len(temp) > 1:
 			if temp[1] == "stress":
-				stress_x = espresso.readline().split()
-				stress_y = espresso.readline().split()
-				stress_z = espresso.readline().split()
-
-				stress_x_k = []
-				stress_y_k = []
-				stress_z_k = []
-
-				for i in range(3):
-					stress_x_k.append(stress_x[i+3])
-					stress_y_k.append(stress_y[i+3])
-					stress_z_k.append(stress_z[i+3])
+				stress_x = espresso.readline().split()[3:]
+				stress_y = espresso.readline().split()[3:]
+				stress_z = espresso.readline().split()[3:]
 
 				index += 3
 			else:
@@ -148,12 +139,10 @@ def get_stress_espresso(filename):
 			index += 1
 
 	# constructs array containing independent components of the stress tensor, in order
-	# stress(1,1), stress(2,2), stress(3,3), stress(1,2), stress(1,3), stress(2,3)
-	stress_tensor = S.array([float(stress_x_k[0]),float(stress_y_k[1]),float(stress_z_k[2]),float(stress_x_k[1]),float(stress_y_k[2]),float(stress_y_k[2])])
+	# stress(1,1), stress(2,2), stress(3,3), stress(2,3), stress(1,3), stress(1,2)
+	stress_tensor = S.array([float(stress_x[0]),float(stress_y[1]),float(stress_z[2]),float(stress_y[2]),float(stress_x[2]),float(stress_x[1])])
 
 	espresso.close()
-
-	print stress_tensor
 
 	return(stress_tensor)
 
