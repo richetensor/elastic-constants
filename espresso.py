@@ -6,6 +6,9 @@ Various bits of python to read/write espresso files
 
 Copyright (c) 2010 Andrew Walker (a.walker@ucl.ac.uk)
 All rights reserved.
+
+NOTE: Always use ibrav = 0, celldm(1) = 0. Give the lattice as
+three 3-tuples with units of either a.u. or angstroms.
 """
 
 import re
@@ -13,46 +16,70 @@ import scipy as S
 
 version = 0.1
 
+def parse_espresso(seedname,crystal_sys,natoms):
+	'''Read in a quantum espresso input file and extract lattice vectors and atom
+	positions from a QE .in file. Use ibrav = 0, celldm(1) = 0, and express cell parameters
+	in a.u.'''
+	espresso = open(seedname + ".in","r")
 
-# Start of the 'final configuration'
-espresso_infinal_RE = re.compile("BFGS\s*: Final Configuration:")
-
-# Once inside final configuation, this should only match a line with atoms
-espresso_atomline_RE = re.compile("x\s+(\w+)\s+\d+\s+([\+\-]?\d+.\d+)\s+([\+\-]?\d+.\d+)\s+([\+\-]?\d+.\d+)\s+x")
-
-# Get the point group number
-espresso_poinggroup_RE = re.compile("^\s+Point group of crystal =\s+([\+\-]?\d+):")
-
-def parse_espresso(seedname):
-	"""
-	Extract lattice and atom positions from a .espresso
-	file. List of atoms may be empty (e.g. MgO)
-	"""
-	espresso = open(seedname+".espresso","r")
-	# Find the lattice
-	latticeblock = espresso_latt_RE.findall(espresso.read())[-1] # Get the last block - handle concat restarts
-	lattice = []
-	lattice.append([float(latticeblock[0]), float(latticeblock[1]), float(latticeblock[2])])
-	lattice.append([float(latticeblock[6]), float(latticeblock[7]), float(latticeblock[8])])
-	lattice.append([float(latticeblock[12]), float(latticeblock[13]), float(latticeblock[14])])
-	# rewind and search for and final atomic positions (these will be absent if e.g. they are all on symmetry positions)
-	espresso.seek(0)
-	in_atoms = False
-	pointgroup = None
+	atoms_true = False
 	atoms = []
+	atom_line = 0
+
+	lattice = []
+	lattice_block = False
+	index = 0
+
+	'''extract lattice, atomic positions, and crystal system (expand this comment).'''
+
 	for line in espresso:
-		sym_line = espresso_poinggroup_RE.search(line)
-		atom_line = espresso_atomline_RE.search(line)
-		if (in_atoms and atom_line):
-			atoms.append([atom_line.group(1), float(atom_line.group(2)), \
-			              float(atom_line.group(3)), float(atom_line.group(4))])
-		elif ((not in_atoms) and (espresso_infinal_RE.search(line))):
-			in_atoms = True
-		elif (sym_line):
-			pointgroup = int(sym_line.group(1))
-		
-	espresso.close()
-	return (lattice, pointgroup, atoms)
+		line = line.split()
+
+		print line 
+
+		if atoms_true and atom_line < natoms:
+			atoms.append([line[0],float(line[1]),float(line[2]),float(line[3])])
+			atom_line += 1
+
+		if line[0] == "ATOMIC_POSITIONS":
+			atoms_true = True
+
+		if lattice_block and index < 3:
+			lattice.append([float(line[0]),float(line[1]),float(line[2])])
+			index += 1
+
+		if line[0] == "CELL_PARAMETERS":
+			lattice_block = True
+
+	pointgroup = crystal_sys
+
+	return (lattice,pointgroup,atoms)
+
+
+def cell(seedname,filename,defcell,atoms):
+	"""
+	produce_cell: reads <seedname>.in (espresso input file)
+	and writes a new .cell file to <filename>.in replacing the 
+	lattice block with a new crystalographic lattice <defcell> 
+	(which should be supplied as a list of three lists, each with 
+	three elements). Also adds command to fix cell during optimization.
+	"""
+
+	input_file = open(seedname+".in","r")
+	output_file = open(filename+".in","w")
+
+	lattice = False
+	atomic_coords = False
+
+	natoms = len(atoms)
+
+	for line in input_file:
+		if (not lattice) and (not atomic_coords):
+			output_file.write(line)
+			if line.split[0] == "ATOMIC_POSITIONS":
+				atomic_coordinates = True
+				
+
 
 
 # Regular expressions to match a lattice block in a espresso .cell file. Note that these
@@ -101,7 +128,7 @@ def produce_cell(seedname, filename, defcell, atoms):
 	return()
 
 
-def get_stress_espresso(filename):
+def get_stress_espresso(seedname):
 	"""Extract the stress tensor from a .espresso file
 	
 	   Returns a tuple of (<units>, <stress>) where <units>
@@ -110,7 +137,7 @@ def get_stress_espresso(filename):
 	   stress tensor in the order s(1,1), s(2,2), s(3,3)
 	   s(3,2), s(3,1), s(2,1). Stress in units of kbar
 	"""
-	espresso = open(filename,"r")
+	espresso = open(seedname + ".out","r")
 
 	line_count = 0
 
