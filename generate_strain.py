@@ -15,47 +15,9 @@ import os
 import optparse
 import re
 import numpy as np
-import castep
+import espresso
 
 version = 0.1
-
-def PointGroup2StrainPat(pointgroup):
-	"""
-	Converts point group number (as ordered by CASTEP
-	and in the International Tables) to a number representing 
-	the needed strain pattern.
-	"""
-	if (pointgroup < 1):
-		print "Point group number " + str(pointgroup) + " not recognized.\n"
-		sys.exit(1)
-	elif (pointgroup <= 2): 
-		# Triclinic
-		patt = 1
-	elif (pointgroup <= 5):
-		# Monoclinic
-		patt = 2
-	elif (pointgroup <= 8):
-		# Orthorhombic
-		patt = 3
-	elif (pointgroup <= 15):
-		# Tetragonal
-		patt = 4
-	elif (pointgroup <= 17):
-		# Trigonal-Low
-		patt = 6
-	elif (pointgroup <= 20):
-		# Trigonal-High
-		patt = 7
-	elif (pointgroup <= 27):
-		# Hexagonal
-		patt = 7
-	elif (pointgroup <= 32):
-		# Cubic
-		patt = 5
-	else:
-		print "Point group number " + str(pointgroup) + " not recognized.\n"
-		sys.exit(1)
-	return patt
 
 def GetStrainPatterns(code):
 	"""
@@ -126,9 +88,11 @@ def get_options(input_options, libmode):
 		              help='Maximum magnitude of deformation to produced strained cells (defaults to 0.1)')
 		p.add_option('--lattice', '-l',  action='store', type='int', dest="lattice", \
 		              help='Lattice type to set pattern of deformation (extracted from .castep file)')
+		p.add_option('--crystalSystem', '-c',  action='store', type='str', dest="system", \
+		              help='Name of lattice type to set pattern of deformation (extracted from .castep file)')
 		options,arguments = p.parse_args(args=input_options)
 
-	return options, arguments
+	return options, arguments 
 
 
 def cellABC2cellCART (a, b, c, alp, bet, gam, Convention=1):
@@ -194,8 +158,17 @@ def main(input_options, libmode=False):
 	# deal with options
 	options, arguments = get_options(input_options, libmode)
 	seedname = arguments[0]
+
+	# Noting in .castep - use users choice
+	crystalSystem = options.lattice
+
+	if (options.crystalSystem == None):
+		system = "unknown"
+	else:
+		system = options.crystalSystem
+
 	
-	(cell,pointgroup,atoms) = castep.parse_dotcastep(seedname)
+	(cell,latticeCode,atoms) = espresso.parse(seedname,system)
 	# Re-align lattice vectors on cartisian system
 	a, b, c, al, be, ga = cellCART2cellABC(cell)
 	cell = cellABC2cellCART(a, b, c, al, be, ga)
@@ -204,34 +177,21 @@ def main(input_options, libmode=False):
 	# Not sure why the lattice types are enumerated like this, but this is how .cijdat does it...
 	latticeTypes = {0:"Unknown", 1:"Triclinic", 2:"Monoclinic", 3:"Orthorhombic", \
 	                4:"Tetragonal", 5:"Cubic", 6:"Trigonal-low", 7:"Trigonal-high/Hexagonal"}
+
 	maxstrain = options.strain
 	if (maxstrain == None):
 		maxstrain = 0.1
 	numsteps = options.numsteps
 	if (numsteps == None):
 		numsteps = 3 
+
 	# Which strain pattern to use?
-	if (options.lattice == None):
-		if (pointgroup == None):
-			# Nothing from user and nothing from 
-			# .castep: we are in trouble
-			print "No point group found in .castep file so the strain pattern cannot be determined\n"
-			print "A strain pattern can also be provided using the -l flag\n"
-			sys.exit(1)
-		else:
-			# Use the value from .castep
-			latticeCode = PointGroup2StrainPat(pointgroup)
+	if ((options.lattice == None) and (system == "unknown")):
+		print "A strain pattern must be provided using the -l or -c flags\n"
+		sys.exit(1)
 	else:
-		if (pointgroup == None):
-			# Noting in .castep - use users choice
-			latticeCode = options.lattice
-		else:
-			# Use users choice, but check and warn
-			latticeCode = options.lattice
-			if (latticeCode != PointGroup2StrainPat(pointgroup)):
-				print "WARNING: User supplied lattice code is inconsistant with the point group\n"
-				print "         found by CASTEP. Using user supplied lattice code.\n"
-		
+		latticeCode = options.lattice
+				
 	print "Cell parameters: a = %f gamma = %f" % (a, al)
 	print "                 b = %f beta  = %f" % (b, be)
 	print "                 c = %f gamma = %f \n" % (c, ga)
@@ -283,7 +243,7 @@ def main(input_options, libmode=False):
 				cijdat.write(str(this_strain[0]) + " " + str(this_strain[5]) + " " + str(this_strain[4]) + "\n")
 				cijdat.write(str(this_strain[5]) + " " + str(this_strain[1]) + " " + str(this_strain[3]) + "\n")
 				cijdat.write(str(this_strain[4]) + " " + str(this_strain[3]) + " " + str(this_strain[2]) + "\n")
-				castep.produce_dotcell(seedname, pattern_name+".cell", defcell, atoms)
+				espresso.produce_cell(seedname, pattern_name, defcell, atoms)
 				os.symlink(seedname+".param", pattern_name+".param")
 	
 
