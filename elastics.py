@@ -14,7 +14,7 @@ import re
 import optparse
 import scipy as S
 import CijUtil
-import castep
+import espresso
 
 version = 1
 	
@@ -217,9 +217,9 @@ def main(input_options, libmode=False):
 			else:
 				strain = S.row_stack((strain,S.array([float(line1[0]),float(line2[1]),float(line3[2]),2*float(line2[2]),2*float(line1[2]),2*float(line1[1])])))
 		
-			# now get corresponding stress data from .castep
-                        (units, thisStress) = castep.get_stress_dotcastep(seedname+
-				"_cij__"+str(patt+1)+"__"+str(a+1)+".castep")
+			# now get corresponding stress data from the output file
+                        (units, thisStress) = espresso.get_stress(seedname+
+				"_cij__"+str(patt+1)+"__"+str(a+1))
 	
 			# again, top right triangle
 			if a == 0:

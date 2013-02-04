@@ -161,5 +161,5 @@ def get_stress(seedname):
 
 	espresso.close()
 
-	return(stress_tensor)
+	return("GPa",stress_tensor)
 

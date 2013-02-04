@@ -159,14 +159,15 @@ def main(input_options, libmode=False):
 	options, arguments = get_options(input_options, libmode)
 	seedname = arguments[0]
 
-	# Noting in .castep - use users choice
-	crystalSystem = options.lattice
+	print 'Enter the name of the crystal system: '
+	system = raw_input()
+	print ''
 
-	if (options.crystalSystem == None):
-		system = "unknown"
-	else:
-		system = options.crystalSystem
-
+	#if (options.crystalSystem == None):
+		#system = "unknown"
+	#else:
+		#system = options.crystalSystem
+	
 	
 	(cell,latticeCode,atoms) = espresso.parse(seedname,system)
 	# Re-align lattice vectors on cartisian system
@@ -178,19 +179,27 @@ def main(input_options, libmode=False):
 	latticeTypes = {0:"Unknown", 1:"Triclinic", 2:"Monoclinic", 3:"Orthorhombic", \
 	                4:"Tetragonal", 5:"Cubic", 6:"Trigonal-low", 7:"Trigonal-high/Hexagonal"}
 
-	maxstrain = options.strain
-	if (maxstrain == None):
-		maxstrain = 0.1
-	numsteps = options.numsteps
-	if (numsteps == None):
-		numsteps = 3 
+	invLatticeTypes = {"unknown":0, "triclinic":1, "monoclinic":2, "orthorhombic":3, \
+	               "tetragonal":4, "cubic":5, "trigonal-low":6, "trigonal-high/hexagonal":7}
+
+	latticeCode = invLatticeTypes.get(system.lower())
+
+	#maxstrain = options.strain
+	#if (maxstrain == None):
+	#	maxstrain = 0.1
+	#numsteps = options.numsteps
+	#if (numsteps == None):
+	#	numsteps = 3 
+
+	maxstrain = 0.1/0.53
+	numsteps = 3
 
 	# Which strain pattern to use?
-	if ((options.lattice == None) and (system == "unknown")):
-		print "A strain pattern must be provided using the -l or -c flags\n"
-		sys.exit(1)
-	else:
-		latticeCode = options.lattice
+	#if ((options.lattice == None) and (system == "unknown")):
+		#print "A strain pattern must be provided using the -l or -c flags\n"
+		#sys.exit(1)
+	#else:
+		#latticeCode = options.lattice
 				
 	print "Cell parameters: a = %f gamma = %f" % (a, al)
 	print "                 b = %f beta  = %f" % (b, be)
@@ -244,7 +253,7 @@ def main(input_options, libmode=False):
 				cijdat.write(str(this_strain[5]) + " " + str(this_strain[1]) + " " + str(this_strain[3]) + "\n")
 				cijdat.write(str(this_strain[4]) + " " + str(this_strain[3]) + " " + str(this_strain[2]) + "\n")
 				espresso.produce_cell(seedname, pattern_name, defcell, atoms)
-				os.symlink(seedname+".param", pattern_name+".param")
+				#os.symlink(seedname+".param", pattern_name+".param")
 	
 
 	
