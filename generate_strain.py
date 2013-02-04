@@ -19,6 +19,8 @@ import espresso
 
 version = 0.1
 
+bohr = 0.52918 # conversion factor from a.u. to angstroms
+
 def GetStrainPatterns(code):
 	"""
 	Given a code number for the crystal symmetry, 
@@ -191,7 +193,7 @@ def main(input_options, libmode=False):
 	#if (numsteps == None):
 	#	numsteps = 3 
 
-	maxstrain = 0.1/0.53
+	maxstrain = 0.1/bohr
 	numsteps = 3
 
 	# Which strain pattern to use?
