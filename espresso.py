@@ -98,13 +98,13 @@ def produce_cell(seedname,filename,defcell,atoms):
 			output_file.write(line)
 			in_atoms = True
 		elif in_atoms and i < natoms:
-			output_file.write("  " + str(atoms[i][0]) + " %.2f %.2f %.2f 1 1 1\n" % (atoms[i][1],atoms[i][2],atoms[i][3]))
+			output_file.write("  " + str(atoms[i][0]) + " %.4f %.4f %.4f 1 1 1\n" % (atoms[i][1],atoms[i][2],atoms[i][3]))
 			i += 1
 		elif temp[0] == cards[3]:
 			output_file.write(line)
 			in_lattice = True
 		elif  in_lattice and j < 3:
-			output_file.write("  %.2f %.2f %.2f\n" % (defcell[j][0],defcell[j][1],defcell[j][2]))
+			output_file.write("  %.4f %.4f %.4f\n" % (defcell[j][0],defcell[j][1],defcell[j][2]))
 			j += 1
 		elif temp[0] == "&cell":
 			in_cell = True
