@@ -148,13 +148,13 @@ def get_stress(seedname):
 		line = line.split()
 		if len(line) > 1:
 			if line[0] == stress_identifier:
-				stress = line[-4:-1]
-				break
+				stress = line[-6:]
+				
 
 	# constructs array containing independent components of the stress tensor, in order
 	# stress(1,1), stress(2,2), stress(3,3), stress(2,3), stress(1,3), stress(1,2). Multiply
 	# by 0.1 to convert from kbar to GPa. 
-	stress_tensor = 0.1*S.array(stress)
+	stress_tensor = 0.1*S.array([float(stress[0]),float(stress[1]),float(stress[2]),float(stress[3]),float(stress[4]),float(stress[5])])
 
 	siesta.close()
 
