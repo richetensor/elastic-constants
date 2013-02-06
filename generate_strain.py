@@ -193,7 +193,7 @@ def main(input_options, libmode=False):
 	#if (numsteps == None):
 	#	numsteps = 3 
 
-	maxstrain = 0.1/bohr
+	maxstrain = 0.05/bohr
 	numsteps = 3
 
 	# Which strain pattern to use?

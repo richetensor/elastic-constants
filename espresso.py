@@ -156,8 +156,8 @@ def get_stress(seedname):
 
 	# constructs array containing independent components of the stress tensor, in order
 	# stress(1,1), stress(2,2), stress(3,3), stress(2,3), stress(1,3), stress(1,2). Multiply
-	# by 0.1 to convert from kbar to GPa. 
-	stress_tensor = 0.1*S.array([float(stress_x[0]),float(stress_y[1]),float(stress_z[2]),float(stress_y[2]),float(stress_x[2]),float(stress_x[1])])
+	# by 0.1 to convert from kbar to GPa. Note that QE outputs stress with the wrong sign, so we multiply by -1
+	stress_tensor = 0.1*S.array([-float(stress_x[0]),-float(stress_y[1]),-float(stress_z[2]),-float(stress_y[2]),-float(stress_x[2]),-float(stress_x[1])])
 
 	espresso.close()
 

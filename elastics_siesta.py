@@ -14,7 +14,7 @@ import re
 import optparse
 import scipy as S
 import CijUtil
-import espresso
+import siesta
 
 version = 1
 	
@@ -197,7 +197,7 @@ def main(input_options, libmode=False):
 	errors = S.zeros((21,1))
 	
 	for patt in range(numStrainPatterns/numsteps):
-		
+		print patt
 		print "\nAnalysing pattern", patt+1, ":"
 		
 		for a in range(0,numsteps):  
@@ -218,19 +218,22 @@ def main(input_options, libmode=False):
 				strain = S.row_stack((strain,S.array([float(line1[0]),float(line2[1]),float(line3[2]),2*float(line2[2]),2*float(line1[2]),2*float(line1[1])])))
 		
 			# now get corresponding stress data from the output file
-                        (units, thisStress) = espresso.get_stress(seedname+
+                        (units, thisStress) = siesta.get_stress(seedname+
 				"_cij__"+str(patt+1)+"__"+str(a+1))
 	
 			# again, top right triangle
 			if a == 0:
 				stress = thisStress
 			else:
-				stress = S.row_stack(thisStress)
-	
+				stress = S.row_stack((stress,thisStress))
+		
+		print stress
+		print strain
 
 		"""
 		Both the stress and strain matrices use the IRE conventions to reduce the
-		3x3 matrices to 1x6 arrays. These 1D arrays are then stacked to form a 
+		3x3 matrices to 1x6 arrays. These 1D arrays aerror = sqrt((sum(square(stress[:,index1-1] - fit_str)) / \
+				             (numsteps-2))/(sum(square(strain[:,index2-1]))))re then stacked to form a 
 		Nx6 array, where N=number of steps.
 	
 		Note that strain and stress arrays are numbered 0->5 rather than 1->6

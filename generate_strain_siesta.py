@@ -15,10 +15,9 @@ import os
 import optparse
 import re
 import numpy as np
-import espresso
+import siesta
 
 version = 0.1
-
 bohr = 0.52918 # conversion factor from a.u. to angstroms
 
 def GetStrainPatterns(code):
@@ -171,7 +170,12 @@ def main(input_options, libmode=False):
 		#system = options.crystalSystem
 	
 	
-	(cell,latticeCode,atoms) = espresso.parse(seedname,system)
+	(alat,normed_cell,latticeCode,atoms) = siesta.parse(seedname,system)
+	# write cell in angstroms, rather than units of alat
+	cell = []
+	for i in range(3):
+		lattice_vector = [alat*normed_cell[i][0],alat*normed_cell[i][1],alat*normed_cell[i][2]]
+		cell.append(lattice_vector)
 	# Re-align lattice vectors on cartisian system
 	a, b, c, al, be, ga = cellCART2cellABC(cell)
 	cell = cellABC2cellCART(a, b, c, al, be, ga)
@@ -193,7 +197,7 @@ def main(input_options, libmode=False):
 	#if (numsteps == None):
 	#	numsteps = 3 
 
-	maxstrain = 0.1/bohr
+	maxstrain = 0.1
 	numsteps = 3
 
 	# Which strain pattern to use?
@@ -241,12 +245,12 @@ def main(input_options, libmode=False):
 				this_strain[5] = 0.5 * (disps[5] / np.sqrt(cell[0][0]**2+cell[0][1]**2+cell[0][2]**2))
 
 				# Deform cell - only apply deformation to upper right corner
-				defcell = [[cell[0][0]+disps[0], cell[0][1]+disps[5], cell[0][2]+disps[4]],
-					   [cell[1][0],          cell[1][1]+disps[1], cell[1][2]+disps[3]],
-					   [cell[2][0],          cell[2][1],          cell[2][2]+disps[2]]]
+				defcell = [[normed_cell[0][0]+this_strain[0], normed_cell[0][1]+this_strain[5], normed_cell[0][2]+this_strain[4]],
+					   [normed_cell[1][0],          normed_cell[1][1]+this_strain[1], normed_cell[1][2]+this_strain[3]],
+					   [normed_cell[2][0],          normed_cell[2][1],          normed_cell[2][2]+this_strain[2]]]
 
 				pattern_name = seedname + "_cij__" + str(patt+1) + "__" + str((a*2)+1+neg)
-
+				print this_strain
 				print "Pattern Name = ", pattern_name
 				print "Pattern = ", this_pat
 				print "Magnitude = ", this_mag
@@ -254,7 +258,7 @@ def main(input_options, libmode=False):
 				cijdat.write(str(this_strain[0]) + " " + str(this_strain[5]) + " " + str(this_strain[4]) + "\n")
 				cijdat.write(str(this_strain[5]) + " " + str(this_strain[1]) + " " + str(this_strain[3]) + "\n")
 				cijdat.write(str(this_strain[4]) + " " + str(this_strain[3]) + " " + str(this_strain[2]) + "\n")
-				espresso.produce_cell(seedname, pattern_name, defcell, atoms)
+				siesta.produce_cell(seedname, pattern_name, defcell, atoms)
 				#os.symlink(seedname+".param", pattern_name+".param")
 	
 

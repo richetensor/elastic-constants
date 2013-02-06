@@ -98,9 +98,10 @@ def produce_cell(seedname,filename,defcell,atoms):
 		temp = line.split()
 		if len(temp) <= 1:
 			output_file.write(line)
-		elif (temp[1] == cards[0]) and activate_lattice:
+		elif (temp[1] == cards[0]) and activate_atoms:
 			output_file.write(line)
 			in_atoms = True
+			activate_atoms = False
 		elif in_atoms:
 			if i < natoms:
 				output_file.write("  " + " %.4f %.4f %.4f %s\n" % (atoms[i][1],atoms[i][2],atoms[i][3],atoms[i][0]))
@@ -109,19 +110,19 @@ def produce_cell(seedname,filename,defcell,atoms):
 				output_file.write(line)
 				in_atoms = False
 				activate_atoms = False
-		elif (temp[1] == cards[0]) and activate_lattice:
+		elif (temp[1] == cards[2]) and activate_lattice:
 			output_file.write(line)
 			in_lattice = True
+			activate_lattice = False
 		elif  in_lattice:
 			if j < 3:
-				output_file.write("  %.4f %.4f %.4f\n" % (defcell[j][0],defcell[j][1],defcell[j][2]))
+				output_file.write("  %.6f %.6f %.6f\n" % (defcell[j][0],defcell[j][1],defcell[j][2]))
 				j+=1
 			else:
 				output_file.write(line)
 				in_lattice = False
-				activate_lattice = False
 		elif temp[0] == "MD.VariableCell":
-			output_file.write("MD.VariableCell		.false.")
+			output_file.write("MD.VariableCell		.false.\n")
 		else:
 			output_file.write(line)
 
@@ -142,19 +143,35 @@ def get_stress(seedname):
 	"""
 	siesta = open(seedname + ".out","r")
 
-	stress_identifier = "Stress-tensor-Voigt"
+	line_count = 0
 
 	for line in siesta:
-		line = line.split()
+		line_count += 1
+
+	siesta.close()
+
+	siesta = open(seedname + ".out","r")
+
+	index = 0
+	while index < line_count:
+		line = siesta.readline().split()
 		if len(line) > 1:
-			if line[0] == stress_identifier:
-				stress = line[-6:]
-				
+			if (line[1] == "Stress") and (line[2]=="tensor"):
+				stress_x = siesta.readline().split()[1:]
+				stress_y = siesta.readline().split()[1:]
+				stress_z = siesta.readline().split()[1:]
+				index += 3
+			else:
+				index += 1
+		else:
+			index += 1
+	
+			
 
 	# constructs array containing independent components of the stress tensor, in order
 	# stress(1,1), stress(2,2), stress(3,3), stress(2,3), stress(1,3), stress(1,2). Multiply
-	# by 0.1 to convert from kbar to GPa. 
-	stress_tensor = 0.1*S.array([float(stress[0]),float(stress[1]),float(stress[2]),float(stress[3]),float(stress[4]),float(stress[5])])
+	# by 160.2176487 to convert from eV/(Ang^3) to GPa. 
+	stress_tensor = 160.2176487*S.array([float(stress_x[0]),float(stress_y[1]),float(stress_z[2]),float(stress_y[2]),float(stress_x[2]),float(stress_x[1])])
 
 	siesta.close()
 
