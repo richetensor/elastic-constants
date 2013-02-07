@@ -17,10 +17,8 @@ version = 0.1
 
 cards = {0:"AtomicCoordinatesAndAtomicSpecies",1:"LatticeConstant",2:"LatticeVectors"}
 
-# dictionary containing crystal symmetries with supported strain patterns (if entered symmetry is not in dict, code is 0 = UNKNOWN)
-symmetry = {"cubic":5, "hexagonal":7, "trigonal-high":7, "trigonal-low":6, "tetragonal":4, "orthorhombic":3, "monoclinic":2, "tricilinic":1}
 
-def parse(seedname,lattice_type):
+def parse(seedname):
 	'''Read in a siesta input file and extract lattice vectors and atom
 	positions from a QE .in file. Use ibrav = 0, celldm(1) = 0, and express cell parameters
 	in a.u. Also produces a number representing the needed strain pattern.'''
@@ -63,13 +61,9 @@ def parse(seedname,lattice_type):
 			elif (line[1] == cards[2]) and activate_lattice:
 				in_lattice = True
 
-	crystal_sys = lattice_type.lower()
-	if crystal_sys in symmetry:
-		code = symmetry.get(crystal_sys)
-	else:
-		code = 0
 
-	return (lattice_parameter,lattice,code,atoms)
+
+	return (lattice_parameter,lattice,atoms)
 
 
 

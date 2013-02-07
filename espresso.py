@@ -18,10 +18,8 @@ version = 0.2
 
 # Dictionary containing all possible QE cards
 cards = {0:"ATOMIC_SPECIES", 1:"ATOMIC_POSITIONS", 2:"K_POINTS", 3:"CELL_PARAMETERS", 4:"CLIMBING_IMAGES", 5:"CONSTRAINTS"} 
-# dictionary containing crystal symmetries with supported strain patterns (if entered symmetry is not in dict, code is 0 = UNKNOWN)
-symmetry = {"cubic":5, "hexagonal":7, "trigonal-high":7, "trigonal-low":6, "tetragonal":4, "orthorhombic":3, "monoclinic":2, "tricilinic":1}
 
-def parse(seedname,lattice_type):
+def parse(seedname):
 	'''Read in a quantum espresso input file and extract lattice vectors and atom
 	positions from a QE .in file. Use ibrav = 0, celldm(1) = 0, and express cell parameters
 	in a.u. Also produces a number representing the needed strain pattern.'''
@@ -56,13 +54,8 @@ def parse(seedname,lattice_type):
 		elif line[0] == cards[3]:
 			in_lattice = True
 
-	crystal_sys = lattice_type.lower()
-	if crystal_sys in symmetry:
-		code = symmetry.get(crystal_sys)
-	else:
-		code = 0
 
-	return (lattice,code,atoms)
+	return (lattice,atoms)
 
 
 

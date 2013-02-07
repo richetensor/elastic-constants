@@ -90,8 +90,6 @@ def get_options(input_options, libmode):
 		              help='Maximum magnitude of deformation to produced strained cells (defaults to 0.1)')
 		p.add_option('--lattice', '-l',  action='store', type='int', dest="lattice", \
 		              help='Lattice type to set pattern of deformation (extracted from .castep file)')
-		p.add_option('--crystalSystem', '-c',  action='store', type='str', dest="system", \
-		              help='Name of lattice type to set pattern of deformation (extracted from .castep file)')
 		options,arguments = p.parse_args(args=input_options)
 
 	return options, arguments 
@@ -161,17 +159,10 @@ def main(input_options, libmode=False):
 	options, arguments = get_options(input_options, libmode)
 	seedname = arguments[0]
 
-	print 'Enter the name of the crystal system: '
-	system = raw_input()
-	print ''
 
-	#if (options.crystalSystem == None):
-		#system = "unknown"
-	#else:
-		#system = options.crystalSystem
 	
 	
-	(cell,latticeCode,atoms) = espresso.parse(seedname,system)
+	(cell,atoms) = espresso.parse(seedname)
 	# Re-align lattice vectors on cartisian system
 	a, b, c, al, be, ga = cellCART2cellABC(cell)
 	cell = cellABC2cellCART(a, b, c, al, be, ga)
@@ -181,27 +172,23 @@ def main(input_options, libmode=False):
 	latticeTypes = {0:"Unknown", 1:"Triclinic", 2:"Monoclinic", 3:"Orthorhombic", \
 	                4:"Tetragonal", 5:"Cubic", 6:"Trigonal-low", 7:"Trigonal-high/Hexagonal"}
 
-	invLatticeTypes = {"unknown":0, "triclinic":1, "monoclinic":2, "orthorhombic":3, \
-	               "tetragonal":4, "cubic":5, "trigonal-low":6, "trigonal-high/hexagonal":7}
 
-	latticeCode = invLatticeTypes.get(system.lower())
-
-	#maxstrain = options.strain
-	#if (maxstrain == None):
-	#	maxstrain = 0.1
-	#numsteps = options.numsteps
-	#if (numsteps == None):
-	#	numsteps = 3 
+	maxstrain = options.strain
+	if (maxstrain == None):
+		maxstrain = 0.1
+	numsteps = options.numsteps
+	if (numsteps == None):
+		numsteps = 3 
 
 	maxstrain = 0.05/bohr
 	numsteps = 3
 
 	# Which strain pattern to use?
-	#if ((options.lattice == None) and (system == "unknown")):
-		#print "A strain pattern must be provided using the -l or -c flags\n"
-		#sys.exit(1)
-	#else:
-		#latticeCode = options.lattice
+	if (options.lattice == None):
+		print "A strain pattern must be provided using the -l flag\n"
+		sys.exit(1)
+	else:
+		latticeCode = options.lattice
 				
 	print "Cell parameters: a = %f gamma = %f" % (a, al)
 	print "                 b = %f beta  = %f" % (b, be)
