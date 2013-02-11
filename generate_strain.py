@@ -190,7 +190,7 @@ def main(input_options, libmode=False):
 	else:
 		latticeCode = options.lattice
 				
-	print "Cell parameters: a = %f gamma = %f" % (a, al)
+	print "Cell parameters: a = %f alpha = %f" % (a, al)
 	print "                 b = %f beta  = %f" % (b, be)
 	print "                 c = %f gamma = %f \n" % (c, ga)
 	print "Lattce vectors:  %7f %7f %7f " % (cell[0][0], cell[0][1], cell[0][2])
