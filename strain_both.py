@@ -204,7 +204,7 @@ def main(input_options, libmode=False):
 	print "Cell parameters: a = %f alpha = %f" % (a, al)
 	print "                 b = %f beta  = %f" % (b, be)
 	print "                 c = %f gamma = %f \n" % (c, ga)
-	print "Lattce vectors:  %7f %7f %7f " % (cell[0][0], cell[0][1], cell[0][2])
+	print "Lattice vectors:  %7f %7f %7f " % (cell[0][0], cell[0][1], cell[0][2])
 	print "                 %7f %7f %7f " % (cell[1][0], cell[1][1], cell[1][2])
 	print "                 %7f %7f %7f \n " % (cell[2][0], cell[2][1], cell[2][2])
 	patterns = GetStrainPatterns(latticeCode)
@@ -256,7 +256,7 @@ def main(input_options, libmode=False):
 				cijdat.write(str(this_strain[0]) + " " + str(this_strain[5]) + " " + str(this_strain[4]) + "\n")
 				cijdat.write(str(this_strain[5]) + " " + str(this_strain[1]) + " " + str(this_strain[3]) + "\n")
 				cijdat.write(str(this_strain[4]) + " " + str(this_strain[3]) + " " + str(this_strain[2]) + "\n")
-				ab_initio.produce_cell(seedname, pattern_name, defcell, atoms,program)
+				ab_initio.produce_cell(seedname,pattern_name,defcell,atoms,program,alat)
 				#os.symlink(seedname+".param", pattern_name+".param")
 	
 
