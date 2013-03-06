@@ -25,7 +25,7 @@ qe_cards = [ "ATOMIC_POSITIONS","ATOMIC_SPECIES", "CELL_PARAMETERS","K_POINTS", 
 # Dictionary with the possible input file formats.
 formats = {0:'.in',1:'.fdf'}
 
-qe_atom_line = re.compile("^.+\s+\d\.\d+\s+\d\.\d+\s+\d\.\d+[\s\d]+\\n")
+qe_atom_line = re.compile("^.+\s+-?\d\.\d+\s+-?\d\.\d+\s+-?\d\.\d+[\s\d]+\\n")
 siesta_atom_line = re.compile("^\s+-?\d\.\d+\s+-?\d\.\d+\s+-?\d\.\d+\s+\d\s+\d+\s+\w+\\n")
 
 def parse(seedname,program):
@@ -61,7 +61,7 @@ def parse(seedname,program):
 
 	# lattice parameter
 	if program == 0:
-		lattice_parameter = float(re.findall('\d+\.\d+',output[lattice_index])[0])
+		lattice_parameter = float(re.findall('-?\d+\.\d+',output[lattice_index])[0])
 	else:
 		lattice_parameter = max([max(lattice[i]) for i in range(3)])
 
