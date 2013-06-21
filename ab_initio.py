@@ -142,7 +142,7 @@ def produce_cell(seedname,filename,defcell,atoms,program,lattice_parameter):
 
 
 	for line in input_file:
-		line = re.sub('vc-relax','scf',line)
+		line = re.sub('vc-relax','relax',line)
 		temp = line.split()
 		if len(temp) <= program:
 			output_file.write(line)
